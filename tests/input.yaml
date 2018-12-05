@@ -1,0 +1,11 @@
+bar1: !bar &bar1
+  field1: bar_value_1
+  field2: bar_value_2
+
+foo: !foo
+  field1: foo_value_1
+  field2: foo_value_2
+  bar: *bar1
+
+blabla:
+  field: blabla_value

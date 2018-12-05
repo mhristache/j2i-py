@@ -1,0 +1,27 @@
+bar_template1
+=============
+
+Object name:
+------------
+expected: bar1
+got:      bar1
+
+Object type:
+------------
+expected: bar
+got:      bar
+
+field1 value
+------------
+expected: bar_value_1
+got       bar_value_1
+
+field2 value
+------------
+expected: bar_value_2
+got       bar_value_2
+
+glabal variable
+---------------
+expected: blabla_value
+got:      blabla_value
