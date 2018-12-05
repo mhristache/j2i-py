@@ -14,7 +14,7 @@ import shutil
 JINJA2_FILE_EXTENSIONS = ['.j2', '.jinja2']
 
 
-def run(input_file_path, templates_dir_path):
+def gen_content(input_file_path, templates_dir_path):
     # parse the templates dirs and extract the templates keys
     templates = get_all_templates(templates_dir_path)
 
@@ -29,7 +29,7 @@ def run(input_file_path, templates_dir_path):
     # find the configured key name for all the Obj defined
     # Note: the objects are expected to be defined at the top level only
     # TODO: maybe add support for nested objects
-    objs = {k: v for k, v in params.items() if isinstance(v, Obj)}
+    objs = {k: v for k, v in params.items() if issubclass(v.__class__, Obj)}
 
     # the params which are not used for objects are considered global params
     global_params = {k: v for k, v in params.items() if k not in objs}
@@ -37,18 +37,20 @@ def run(input_file_path, templates_dir_path):
     # render the templates for each defined object
     content_store = {}
     for name, obj in objs.items():
-        for template in templates[obj.kind]:
-            res = parse_template(template, name=name,
-                                 kind=obj.kind,
-                                 obj=obj.params,
+        kind = obj.__class__.__name__
+        for template in templates[kind]:
+            res = parse_template(template,
+                                 name=name,
+                                 kind=kind,
+                                 obj=obj,
                                  globals=global_params)
 
-            file_path = gen_output_file_path(obj.kind,
+            file_path = gen_output_file_path(kind,
                                              name,
                                              template,
                                              templates_dir_path)
             content_store[file_path] = res
-
+    assert content_store
     return create_zip(content_store)
 
 
@@ -105,6 +107,7 @@ def parse_template(template, **kwargs):
         loader=jinja2.FileSystemLoader(template_dir),
         trim_blocks=True,
         lstrip_blocks=True,
+        keep_trailing_newline=True,
         extensions=['jinja2.ext.loopcontrols', 'jinja2.ext.do']
     )
     template = j2_env.get_template(template_file_name)
@@ -113,18 +116,14 @@ def parse_template(template, **kwargs):
 
 
 class Obj(object):
-
-    def __init__(self, kind, params):
-        self.kind = kind
-        self.params = params
-
-    def __repr__(self):
-        return "Obj({})".format(self.kind)
+    pass
 
 
 def obj_constructor(loader, node):
     values = OrderedDict(loader.construct_mapping(node, deep=True))
-    return Obj(node.tag.lstrip("!"), values)
+    kind = str(node.tag.lstrip("!"))
+    cls = type(kind, (Obj, ), values)
+    return cls()
 
 
 def gen_output_file_path(obj_kind, obj_name, template, root_dir):
@@ -147,6 +146,7 @@ def gen_output_file_path(obj_kind, obj_name, template, root_dir):
 
 def create_zip(content_store):
     """Create a zip file with the given content"""
+
     # create an in memory file to store the zipped hot package
     in_mem_file = StringIO()
 
@@ -187,7 +187,7 @@ if __name__ == "__main__":
         os.path.join(os.path.dirname(__file__), args.templates_dir))
 
     try:
-        content = run(args.input_file, templates_dir)
+        content = gen_content(args.input_file, templates_dir)
     except BaseException as exp:
         raise
     else:

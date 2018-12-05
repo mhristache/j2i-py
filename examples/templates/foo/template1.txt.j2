@@ -1,0 +1,38 @@
+template1.txt
+=============
+
+Object name:
+------------
+expected: foo
+got:      {{ name }}
+
+Object type:
+------------
+expected: foo
+got:      {{ kind }}
+
+field1 value
+------------
+expected: foo_value_1
+got       {{ obj.field1 }}
+
+field2 value
+------------
+expected: foo_value_2
+got       {{ obj.field2 }}
+
+bar.field1 value
+-----------------
+expected: bar_value_1
+got       {{ obj.bar.field1 }}
+
+bar.field2 value
+-----------------
+expected: bar_value_2
+got       {{ obj.bar.field2 }}
+
+
+glabal variable
+---------------
+expected: blabla_value
+got:      {{ globals.blabla.field }}

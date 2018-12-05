@@ -1,1 +1,27 @@
-test
+bar_template1
+=============
+
+Object name:
+------------
+expected: bar1
+got:      {{ name }}
+
+Object type:
+------------
+expected: bar
+got:      {{ kind }}
+
+field1 value
+------------
+expected: bar_value_1
+got       {{ obj.field1 }}
+
+field2 value
+------------
+expected: bar_value_2
+got       {{ obj.field2 }}
+
+glabal variable
+---------------
+expected: blabla_value
+got:      {{ globals.blabla.field }}
