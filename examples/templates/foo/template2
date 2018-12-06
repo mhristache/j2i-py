@@ -4,12 +4,12 @@ template2
 Object name:
 ------------
 expected: foo
-got:      {{ name }}
+got:      {{ obj.keyname }}
 
 Object type:
 ------------
 expected: foo
-got:      {{ kind }}
+got:      {{ obj.kind }}
 
 field1 value
 ------------
@@ -31,6 +31,10 @@ bar.field2 value
 expected: bar_value_2
 got       {{ obj.bar.field2 }}
 
+bar.keyname value
+-----------------
+expected: bar
+got       {{ obj.bar.keyname }}
 
 glabal variable
 ---------------

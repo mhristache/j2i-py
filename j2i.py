@@ -17,6 +17,7 @@ JINJA2_FILE_EXTENSIONS = ['.j2', '.jinja2']
 def gen_content(input_file_path, templates_dir_path):
     # parse the templates dirs and extract the templates keys
     templates = get_all_templates(templates_dir_path)
+    assert templates, "No templates found in {}".format(templates_dir_path)
 
     # create a custom tag constructor for each template key
     for key in templates.keys():
@@ -31,6 +32,14 @@ def gen_content(input_file_path, templates_dir_path):
     # TODO: maybe add support for nested objects
     objs = {k: v for k, v in params.items() if issubclass(v.__class__, Obj)}
 
+    # inject the object names and kind into the objects before the objects
+    # are used in the rendering so that the updated object is used via anchors
+    for name, obj in objs.items():
+        kind = obj.__class__.__name__
+        # add the name and kind as attributes to the obj
+        add_attr_to_obj(obj, 'keyname', name)
+        add_attr_to_obj(obj, 'kind', kind)
+
     # the params which are not used for objects are considered global params
     global_params = {k: v for k, v in params.items() if k not in objs}
 
@@ -40,8 +49,6 @@ def gen_content(input_file_path, templates_dir_path):
         kind = obj.__class__.__name__
         for template in templates[kind]:
             res = parse_template(template,
-                                 name=name,
-                                 kind=kind,
                                  obj=obj,
                                  globals=global_params)
 
@@ -50,9 +57,19 @@ def gen_content(input_file_path, templates_dir_path):
                                              template,
                                              templates_dir_path)
             content_store[file_path] = res
-    assert content_store
+    assert content_store, "No content could be generated"
     return create_zip(content_store)
 
+
+def add_attr_to_obj(obj, attr, value):
+    """Creates a new attribute in the object with the given value
+    If the object already has that attribute configure,
+    it will try to use <attr>_, <attr>__ etc"""
+    if not hasattr(obj, attr):
+        setattr(obj, attr, value)
+    else:
+        new_attr = attr + '_'
+        add_attr_to_obj(obj, new_attr, value)
 
 def get_all_templates(root_dir):
     """Templates files are expected in subdirectories inside root_dir. The name
@@ -183,11 +200,8 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    templates_dir = os.path.abspath(
-        os.path.join(os.path.dirname(__file__), args.templates_dir))
-
     try:
-        content = gen_content(args.input_file, templates_dir)
+        content = gen_content(args.input_file, args.templates_dir)
     except BaseException as exp:
         raise
     else:
