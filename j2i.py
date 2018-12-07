@@ -40,18 +40,12 @@ def gen_content(input_file_path, templates_dir_path):
         add_attr_to_obj(obj, 'keyname', name)
         add_attr_to_obj(obj, 'kind', kind)
 
-    # the params which are not used for objects are considered global params
-    global_params = {k: v for k, v in params.items() if k not in objs}
-
     # render the templates for each defined object
     content_store = {}
     for name, obj in objs.items():
         kind = obj.__class__.__name__
         for template in templates[kind]:
-            res = parse_template(template,
-                                 obj=obj,
-                                 globals=global_params)
-
+            res = parse_template(template, obj=obj, params=params)
             file_path = gen_output_file_path(kind,
                                              name,
                                              template,
