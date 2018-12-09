@@ -9,9 +9,49 @@ from collections import OrderedDict
 from zipfile import ZipFile
 from StringIO import StringIO
 import shutil
+import sys
 
 
 JINJA2_FILE_EXTENSIONS = ['.j2', '.jinja2']
+
+
+def main(input_args):
+    parser = argparse.ArgumentParser(description='Jinja2 CLI - Improved')
+    parser.add_argument('-i',
+                        dest="input_file",
+                        help='the input file in yaml format',
+                        required=True)
+
+    parser.add_argument('-t',
+                        dest="templates_dir",
+                        required=True,
+                        help='the directory where to look for '
+                             'jinja2 template files')
+
+    parser.add_argument('-o',
+                        dest="output_file",
+                        default="j2i_output.zip",
+                        help='the name/path to the output zip file.'
+                             'Default: j2i_output.zip')
+
+    parser.add_argument('--version', action='version', version='0.1')
+
+    args = parser.parse_args(input_args)
+
+    try:
+        content = gen_content(args.input_file, args.templates_dir)
+    except BaseException as exp:
+        raise
+    else:
+        # force .zip extension on the output file
+        output_file_path = args.output_file
+        _, ext = os.path.splitext(output_file_path)
+        if ext != '.zip':
+            output_file_path += '.zip'
+        with open(output_file_path, 'w') as out_file:
+            shutil.copyfileobj(content, out_file)
+
+        print("Done! Output saved to: {0}".format(output_file_path))
 
 
 def gen_content(input_file_path, templates_dir_path):
@@ -64,6 +104,7 @@ def add_attr_to_obj(obj, attr, value):
     else:
         new_attr = attr + '_'
         add_attr_to_obj(obj, new_attr, value)
+
 
 def get_all_templates(root_dir):
     """Templates files are expected in subdirectories inside root_dir. The name
@@ -174,37 +215,4 @@ def create_zip(content_store):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Jinja2 CLI - Improved')
-    parser.add_argument('-i',
-                        dest="input_file",
-                        help='the input file in yaml format',
-                        required=True)
-
-    parser.add_argument('-t',
-                        dest="templates_dir",
-                        required=True,
-                        help='the directory where to look for '
-                             'jinja2 template files')
-
-    parser.add_argument('-o',
-                        dest="output_file",
-                        default="j2i_output.zip",
-                        help='the name/path to the output zip file.'
-                             'Default: j2i_output.zip')
-
-    args = parser.parse_args()
-
-    try:
-        content = gen_content(args.input_file, args.templates_dir)
-    except BaseException as exp:
-        raise
-    else:
-        # force .zip extension on the output file
-        output_file_path = args.output_file
-        _, ext = os.path.splitext(output_file_path)
-        if ext != '.zip':
-            output_file_path += '.zip'
-        with open(output_file_path, 'w') as out_file:
-            shutil.copyfileobj(content, out_file)
-
-        print("Done! Output saved to: {0}".format(output_file_path))
+    main(sys.argv[1:])

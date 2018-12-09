@@ -1,38 +1,47 @@
-template1.txt
-=============
+template2
+=========
 
 Object name:
 ------------
 expected: foo
-got:      {{ name }}
+got:      foo
 
 Object type:
 ------------
 expected: foo
-got:      {{ kind }}
+got:      foo
 
 field1 value
 ------------
 expected: foo_value_1
-got       {{ obj.field1 }}
+got       foo_value_1
 
 field2 value
 ------------
 expected: foo_value_2
-got       {{ obj.field2 }}
+got       foo_value_2
 
 bar.field1 value
 -----------------
 expected: bar_value_1
-got       {{ obj.bar.field1 }}
+got       bar_value_1
 
 bar.field2 value
 -----------------
 expected: bar_value_2
-got       {{ obj.bar.field2 }}
+got       bar_value_2
 
+bar.keyname value
+-----------------
+expected: bar1
+got       bar1
+
+bar.kind value
+-----------------
+expected: bar
+got       bar
 
 glabal variable
 ---------------
 expected: blabla_value
-got:      {{ globals.blabla.field }}
+got:      blabla_value

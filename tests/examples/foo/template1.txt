@@ -31,6 +31,15 @@ bar.field2 value
 expected: bar_value_2
 got       bar_value_2
 
+bar.keyname value
+-----------------
+expected: bar1
+got       bar1
+
+bar.kind value
+-----------------
+expected: bar
+got       bar
 
 glabal variable
 ---------------

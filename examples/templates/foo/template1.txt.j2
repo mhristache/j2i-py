@@ -31,8 +31,17 @@ bar.field2 value
 expected: bar_value_2
 got       {{ obj.bar.field2 }}
 
+bar.keyname value
+-----------------
+expected: bar1
+got       {{ obj.bar.keyname }}
+
+bar.kind value
+-----------------
+expected: bar
+got       {{ obj.bar.kind }}
 
 glabal variable
 ---------------
 expected: blabla_value
-got:      {{ globals.blabla.field }}
+got:      {{ params.blabla.field }}
