@@ -59,6 +59,9 @@ def gen_content(input_file_path, templates_dir_path):
     templates = get_all_templates(templates_dir_path)
     assert templates, "No templates found in {}".format(templates_dir_path)
 
+    # get the files are supposed to be ignored (not rendered with jinja2)
+    to_ignore = get_files_to_be_ignored(templates_dir_path)
+
     # create a custom tag constructor for each template key
     for key in templates.keys():
         yaml.add_constructor(u'!{}'.format(key), obj_constructor)
@@ -85,7 +88,15 @@ def gen_content(input_file_path, templates_dir_path):
     for name, obj in objs.items():
         kind = obj.__class__.__name__
         for template in templates[kind]:
-            res = parse_template(template, obj=obj, params=params)
+            # render the file if it's not supposed to be ignored
+            should_ignore = reduce(
+                lambda a, b: a or b,
+                [template.startswith(x) for x in to_ignore],
+                False)
+            if should_ignore:
+                res = (template, file)
+            else:
+                res = (parse_template(template, obj=obj, params=params), str)
             file_path = gen_output_file_path(kind,
                                              name,
                                              template,
@@ -93,6 +104,20 @@ def gen_content(input_file_path, templates_dir_path):
             content_store[file_path] = res
     assert content_store, "No content could be generated"
     return create_zip(content_store)
+
+
+def get_files_to_be_ignored(dir_):
+    """Check dir_ for a .j2i_ignore file and ignore the files inside"""
+    res = []
+    ignore_file = os.path.join(dir_, '.j2i_ignore')
+    try:
+        with open(ignore_file) as f:
+            for l in f.readlines():
+                p = os.path.join(dir_, l.strip())
+                res.append(p)
+    except IOError:
+        pass
+    return res
 
 
 def add_attr_to_obj(obj, attr, value):
@@ -137,6 +162,7 @@ def get_all_templates(root_dir):
     """
     res = {}
     keys = None
+
     for path, subdirs, files in os.walk(root_dir):
         if keys is None:
             keys = subdirs
@@ -205,8 +231,12 @@ def create_zip(content_store):
     # create the a zip file to store the content
     zip_file = ZipFile(in_mem_file, 'w')
 
-    for file_, content_ in content_store.items():
-        zip_file.writestr(file_.encode('utf-8'), content_.encode('utf-8'))
+    for file_name, content in content_store.items():
+        if content[1] == file:
+            zip_file.write(content[0], file_name)
+        elif content[1] == str:
+            zip_file.writestr(file_name.encode('utf-8'),
+                              content[0].encode('utf-8'))
 
     zip_file.close()
     in_mem_file.seek(0)
