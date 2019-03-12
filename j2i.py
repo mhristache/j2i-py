@@ -186,7 +186,8 @@ def parse_template(template, **kwargs):
         trim_blocks=True,
         lstrip_blocks=True,
         keep_trailing_newline=True,
-        extensions=['jinja2.ext.loopcontrols', 'jinja2.ext.do']
+        extensions=['jinja2.ext.loopcontrols', 'jinja2.ext.do'],
+        undefined=jinja2.StrictUndefined,
     )
     template = j2_env.get_template(template_file_name)
     res = template.render(**kwargs)
