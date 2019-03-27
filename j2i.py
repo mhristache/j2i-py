@@ -96,12 +96,15 @@ def gen_content(input_file_path, templates_dir_path):
             if should_ignore:
                 res = (template, file)
             else:
-                res = (parse_template(template, obj=obj, params=params), str)
-            file_path = gen_output_file_path(kind,
-                                             name,
-                                             template,
-                                             templates_dir_path)
-            content_store[file_path] = res
+                res = parse_template(template, obj=obj, params=params)
+                if res:
+                    res = (res, str)
+            if res:
+                file_path = gen_output_file_path(kind,
+                                                 name,
+                                                 template,
+                                                 templates_dir_path)
+                content_store[file_path] = res
     assert content_store, "No content could be generated"
     return create_zip(content_store)
 
