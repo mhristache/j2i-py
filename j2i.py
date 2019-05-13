@@ -10,6 +10,7 @@ from zipfile import ZipFile
 from StringIO import StringIO
 import shutil
 import sys
+import uuid
 
 
 JINJA2_FILE_EXTENSIONS = ['.j2', '.jinja2']
@@ -40,7 +41,7 @@ def main(input_args):
 
     try:
         content = gen_content(args.input_file, args.templates_dir)
-    except BaseException as exp:
+    except BaseException:
         raise
     else:
         # force .zip extension on the output file
@@ -192,9 +193,19 @@ def parse_template(template, **kwargs):
         extensions=['jinja2.ext.loopcontrols', 'jinja2.ext.do'],
         undefined=jinja2.StrictUndefined,
     )
+
+    # add some useful custom filters
+    j2_env.filters['uuid'] = j2_uuid
+
     template = j2_env.get_template(template_file_name)
     res = template.render(**kwargs)
     return res
+
+
+def j2_uuid(s):
+    """"Jinja2 custom filter that transforms the given string into a UUID
+    """
+    return uuid.uuid5(uuid.NAMESPACE_DNS, s)
 
 
 class Obj(object):
