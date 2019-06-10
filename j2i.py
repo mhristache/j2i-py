@@ -196,6 +196,8 @@ def parse_template(template, **kwargs):
 
     # add some useful custom filters
     j2_env.filters['uuid'] = j2_uuid
+    j2_env.filters['debug'] = j2_debug
+    j2_env.filters['raise'] = j2_raise
 
     template = j2_env.get_template(template_file_name)
     res = template.render(**kwargs)
@@ -206,6 +208,19 @@ def j2_uuid(s):
     """"Jinja2 custom filter that transforms the given string into a UUID
     """
     return uuid.uuid5(uuid.NAMESPACE_DNS, s)
+
+
+def j2_debug(s):
+    """Jinja2 custom filter that prints the given string to stdout
+    """
+    print(s)
+    return ''
+
+
+def j2_raise(s):
+    """Jinja2 custom filter that raises an error
+    """
+    raise Exception(s)
 
 
 class Obj(object):
