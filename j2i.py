@@ -11,6 +11,7 @@ from StringIO import StringIO
 import shutil
 import sys
 import uuid
+import netaddr
 
 
 JINJA2_FILE_EXTENSIONS = ['.j2', '.jinja2']
@@ -198,6 +199,7 @@ def parse_template(template, **kwargs):
     j2_env.filters['uuid'] = j2_uuid
     j2_env.filters['debug'] = j2_debug
     j2_env.filters['raise'] = j2_raise
+    j2_env.filters['iprange'] = j2_ip_range
 
     template = j2_env.get_template(template_file_name)
     res = template.render(**kwargs)
@@ -221,6 +223,13 @@ def j2_raise(s):
     """Jinja2 custom filter that raises an error
     """
     raise Exception(s)
+
+
+def j2_ip_range(s):
+    """Jinja2 custom filter that transforms an IP range string,
+    e.g. 192.168.0.1-192.168.0.4, into a netaddr.IPRange()"""
+    start, _, end = s.partition("-")
+    return netaddr.IPRange(start, end)
 
 
 class Obj(object):
