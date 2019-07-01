@@ -200,6 +200,8 @@ def parse_template(template, **kwargs):
     j2_env.filters['debug'] = j2_debug
     j2_env.filters['raise'] = j2_raise
     j2_env.filters['iprange'] = j2_ip_range
+    j2_env.filters['ipnetwork'] = j2_ip_network
+    j2_env.filters['ipaddress'] = j2_ip_address
 
     template = j2_env.get_template(template_file_name)
     res = template.render(**kwargs)
@@ -230,6 +232,20 @@ def j2_ip_range(s):
     e.g. 192.168.0.1-192.168.0.4, into a netaddr.IPRange()"""
     start, _, end = s.partition("-")
     return netaddr.IPRange(start, end)
+
+
+def j2_ip_network(s):
+    """Jinja2 custom filter that converts a subnet in string format to
+    netaddr.IPNetwork
+    """
+    return netaddr.IPNetwork(s)
+
+
+def j2_ip_address(s):
+    """Jinja2 custom filter that converts an IP in string format to
+    netaddr.IPAddress
+    """
+    return netaddr.IPAddress(s)
 
 
 class Obj(object):
