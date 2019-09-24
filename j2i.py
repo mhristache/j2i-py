@@ -202,6 +202,7 @@ def parse_template(template, **kwargs):
     j2_env.filters['iprange'] = j2_ip_range
     j2_env.filters['ipnetwork'] = j2_ip_network
     j2_env.filters['ipaddress'] = j2_ip_address
+    j2_env.filters['quote'] = j2_quote
 
     template = j2_env.get_template(template_file_name)
     res = template.render(**kwargs)
@@ -246,6 +247,12 @@ def j2_ip_address(s):
     netaddr.IPAddress
     """
     return netaddr.IPAddress(s)
+
+
+def j2_quote(s):
+    """Jinja2 custom filter that quotes a string
+    """
+    return '"{}"'.format(s)
 
 
 class Obj(object):
