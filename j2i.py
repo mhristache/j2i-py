@@ -12,6 +12,7 @@ import shutil
 import sys
 import uuid
 import netaddr
+import hashlib
 
 
 JINJA2_FILE_EXTENSIONS = ['.j2', '.jinja2']
@@ -203,6 +204,7 @@ def parse_template(template, **kwargs):
     j2_env.filters['ipnetwork'] = j2_ip_network
     j2_env.filters['ipaddress'] = j2_ip_address
     j2_env.filters['quote'] = j2_quote
+    j2_env.filters['to_linux_ifname'] = j2_to_linux_if_name
 
     template = j2_env.get_template(template_file_name)
     res = template.render(**kwargs)
@@ -253,6 +255,24 @@ def j2_quote(s):
     """Jinja2 custom filter that quotes a string
     """
     return '"{}"'.format(s)
+
+
+def j2_to_linux_if_name(s):
+    """Convert the given string into a linux compatible interface name"""
+    res = []
+    for c in s:
+        if c.isalnum() or c in ['-', '_']:
+            res.append(c)
+    # the interface name in linux cannot be bigger than 15 chars
+    if len(res) > 15:
+        # calculate a 9 digits hash of the input string and
+        # append that to the first 6 escaped chars
+        h = int(hashlib.sha256(s.encode('utf-8')).hexdigest(), 16) % 10**9
+        r = ''.join(res[:6]) + str(h)
+        assert len(r) <= 15
+        return r
+    else:
+        return ''.join(res)
 
 
 class Obj(object):
