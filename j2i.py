@@ -203,6 +203,7 @@ def parse_template(template, **kwargs):
     j2_env.filters['iprange'] = j2_ip_range
     j2_env.filters['ipnetwork'] = j2_ip_network
     j2_env.filters['ipaddress'] = j2_ip_address
+    j2_env.filters['ipset'] = j2_ip_set
     j2_env.filters['quote'] = j2_quote
     j2_env.filters['to_linux_ifname'] = j2_to_linux_if_name
 
@@ -249,6 +250,13 @@ def j2_ip_address(s):
     netaddr.IPAddress
     """
     return netaddr.IPAddress(s)
+
+
+def j2_ip_set(s):
+    """Jinja2 custom filter that converts a list of IP ranges in string format
+    to netaddr.IPSet
+    """
+    return netaddr.IPSet(s)
 
 
 def j2_quote(s):
