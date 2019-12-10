@@ -3,7 +3,8 @@
 
 import argparse
 import os
-import yaml
+from ruamel.yaml import YAML
+from ruamel.yaml.comments import CommentedMap
 import jinja2
 from collections import OrderedDict
 from zipfile import ZipFile
@@ -58,6 +59,8 @@ def main(input_args):
 
 
 def gen_content(input_file_path, templates_dir_path):
+    yaml = YAML()
+
     # parse the templates dirs and extract the templates keys
     templates = get_all_templates(templates_dir_path)
     assert templates, "No templates found in {}".format(templates_dir_path)
@@ -67,7 +70,7 @@ def gen_content(input_file_path, templates_dir_path):
 
     # create a custom tag constructor for each template key
     for key in templates.keys():
-        yaml.add_constructor(u'!{}'.format(key), obj_constructor)
+        yaml.Constructor.add_constructor(u'!{}'.format(key),  obj_constructor)
 
     # open and parse the input yaml
     with open(input_file_path) as f:
@@ -288,7 +291,8 @@ class Obj(object):
 
 
 def obj_constructor(loader, node):
-    values = OrderedDict(loader.construct_mapping(node, deep=True))
+    values = CommentedMap()
+    loader.construct_mapping(node, values, deep=True)
     kind = str(node.tag.lstrip("!"))
     cls = type(kind, (Obj, ), values)
     return cls()
