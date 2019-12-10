@@ -6,7 +6,6 @@ import os
 from ruamel.yaml import YAML
 from ruamel.yaml.comments import CommentedMap
 import jinja2
-from collections import OrderedDict
 from zipfile import ZipFile
 from StringIO import StringIO
 import shutil
