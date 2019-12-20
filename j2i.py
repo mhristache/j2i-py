@@ -199,7 +199,7 @@ def parse_template(template, **kwargs):
     )
 
     # add some useful custom filters
-    j2_env.filters['uuid'] = j2_uuid
+    j2_env.filters['uuid5'] = j2_uuid5
     j2_env.filters['debug'] = j2_debug
     j2_env.filters['raise'] = j2_raise
     j2_env.filters['iprange'] = j2_ip_range
@@ -209,15 +209,24 @@ def parse_template(template, **kwargs):
     j2_env.filters['quote'] = j2_quote
     j2_env.filters['to_linux_ifname'] = j2_to_linux_if_name
 
+    # add some global functions (that can be called directly)
+    j2_env.globals['uuid4'] = j2_uuid4
+
     template = j2_env.get_template(template_file_name)
     res = template.render(**kwargs)
     return res
 
 
-def j2_uuid(s):
+def j2_uuid5(s):
     """"Jinja2 custom filter that transforms the given string into a UUID
     """
     return uuid.uuid5(uuid.NAMESPACE_DNS, s)
+
+
+def j2_uuid4():
+    """"Jinja2 custom filter that generates an UUID4 string (random)
+    """
+    return uuid.uuid4()
 
 
 def j2_debug(s):
