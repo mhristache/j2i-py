@@ -82,7 +82,7 @@ def gen_content(params, templates_dir_path):
     # inject the object names and kind into the objects before the objects
     # are used in the rendering so that the updated object is used via anchors
     for name, obj in objs.items():
-        kind = obj.__class__.__name__
+        kind = obj.__class__.__name__.lower()
         # add the name and kind as attributes to the obj
         add_attr_to_obj(obj, 'keyname', name)
         add_attr_to_obj(obj, 'kind', kind)
