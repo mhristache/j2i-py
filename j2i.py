@@ -18,6 +18,9 @@ import hashlib
 JINJA2_FILE_EXTENSIONS = ['.j2', '.jinja2']
 
 
+yaml = YAML()
+
+
 def main(input_args):
     parser = argparse.ArgumentParser(description='Jinja2 CLI - Improved')
     parser.add_argument('-i',
@@ -42,23 +45,27 @@ def main(input_args):
     args = parser.parse_args(input_args)
 
     try:
-        content = gen_content(args.input_file, args.templates_dir)
+        # parse the templates dirs and extract the templates keys
+        templates = get_all_templates(args.templates_dir)
+        assert templates, "No templates found in {}".format(args.templates_dir)
+
+        # create a custom tag constructor for each template key
+        for key in templates.keys():
+            yaml.Constructor.add_constructor(u'!{}'.format(key), obj_constructor)
+
+        # open and parse the input yaml
+        with open(args.input_file) as f:
+            params = yaml.load(f)
+
+        content = gen_content(params, args.templates_dir)
     except BaseException:
         raise
     else:
-        # force .zip extension on the output file
-        output_file_path = args.output_file
-        _, ext = os.path.splitext(output_file_path)
-        if ext != '.zip':
-            output_file_path += '.zip'
-        with open(output_file_path, 'w') as out_file:
-            shutil.copyfileobj(content, out_file)
-
+        output_file_path = write_content(content, args.output_file)
         print("Done! Output saved to: {0}".format(output_file_path))
 
 
-def gen_content(input_file_path, templates_dir_path):
-    yaml = YAML()
+def gen_content(params, templates_dir_path):
 
     # parse the templates dirs and extract the templates keys
     templates = get_all_templates(templates_dir_path)
@@ -66,14 +73,6 @@ def gen_content(input_file_path, templates_dir_path):
 
     # get the files are supposed to be ignored (not rendered with jinja2)
     to_ignore = get_files_to_be_ignored(templates_dir_path)
-
-    # create a custom tag constructor for each template key
-    for key in templates.keys():
-        yaml.Constructor.add_constructor(u'!{}'.format(key),  obj_constructor)
-
-    # open and parse the input yaml
-    with open(input_file_path) as f:
-        params = yaml.load(f)
 
     # find the configured key name for all the Obj defined
     # Note: the objects are expected to be defined at the top level only
@@ -112,6 +111,16 @@ def gen_content(input_file_path, templates_dir_path):
                 content_store[file_path] = res
     assert content_store, "No content could be generated"
     return create_zip(content_store)
+
+
+def write_content(content, output_file_path):
+    # force .zip extension on the output file
+    _, ext = os.path.splitext(output_file_path)
+    if ext != '.zip':
+        output_file_path += '.zip'
+    with open(output_file_path, 'w') as out_file:
+        shutil.copyfileobj(content, out_file)
+    return output_file_path
 
 
 def get_files_to_be_ignored(dir_):
