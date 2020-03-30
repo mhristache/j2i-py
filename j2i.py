@@ -90,8 +90,8 @@ def gen_content(params, templates_dir_path):
     # render the templates for each defined object
     content_store = {}
     for name, obj in objs.items():
-        kind = obj.__class__.__name__
-        for template in templates[kind]:
+        kind = obj.__class__.__name__.lower()
+        for template in templates.get(kind, []):
             # render the file if it's not supposed to be ignored
             should_ignore = reduce(
                 lambda a, b: a or b,
